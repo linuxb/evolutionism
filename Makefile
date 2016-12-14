@@ -1,11 +1,17 @@
 CC = g++
+SRCS = acct.cpp
+OBJS = out/acct.o
 
-.PHONY: expe all
+.PHONY: expe all clean
 
 all: expe	
 
-out/main.o: main.cpp
-	@$(CC) -c main.cpp -o $@
+$(OBJS): $(SRCS)
+	@$(CC) -c $< -o $@
 
-expe: out/main.o
+expe: $(OBJS)
 	@$(CC) $< -o $@
+
+clean:
+	@rm out/*.o
+	@rm ./expe

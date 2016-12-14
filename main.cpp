@@ -41,30 +41,6 @@ void Observer::observer() {
     delete stream;
 }
 
-void ForkSlave() {
-    int shared_counter = 0;
-    pid_t pid;
-    char buffer[] = "data to be written to buffer\n";
-    //line buffer if we print out to terminal
-    //but if we redirect to a file it all exist in buffer
-    if (write(STDOUT_FILENO, buffer, sizeof(buffer) - 1) != sizeof(buffer) - 1)
-        perror("write failed !\n");
-    printf("start to fork a slave process\n");
-    if ((pid = fork()) < 0) {
-       perror("process fork error\n");
-    } else if (pid == 0) {
-        //slave process
-        //COW the stack (some registers) the slave modified would duplicate a new stack to store all its state context
-        shared_counter++;
-    } else {
-        //parent process
-        //wait for slave avoiding it make no sense if the master exit
-        sleep(2);
-    }
-
-    printf("in fork experiment, show the result ==> pid = %ld, counter = %d\n", (long)getpid(), shared_counter);
-    exit(0);
-}
 
 void ReportToMaster(int status) {
     if (WIFEXITED(status)) 
@@ -97,30 +73,64 @@ void BoostContextify(char* msg) {
     }
 }
 
+/*
+* P1 -> P2 -> P3
+*/
+
+void TryBlurred() {
+    pid_t pid;
+    int status;
+    if ((pid = fork()) < 0)
+        perror("fork error");
+    else if (pid == 0) {
+        //P2
+        if ((pid = fork()) < 0)
+            perror("fork error at child process");
+        else if (pid > 0) {
+            //P2
+            sleep(3);
+            exit(0);
+        }
+        //P3
+        if (nice(-10) == -1 && !errno)
+            perror("increase process priority error");
+        // sleep(2);
+        printf("P3's parrent process ==> %ld\n", (long) getppid());
+        abort();
+    }
+
+    //P1
+    //wait for all its child processes
+    waitpid(pid, &status, 0);
+    ReportToMaster(status);
+    exit(0);
+}
+
 void Dispatch() {
     pid_t pid;
     int status;
     if ((pid = fork()) < 0) {
-        perror("fork error !\n");
+        perror("fork error !");
     } else if (pid == 0) {
         //send a SIGABORT to master
-        abort();
+        // abort();
         // status /= 0;
+        BoostContextify("cheer up!\n");
     } else {
         // sleep(2);
+        BoostContextify("cheer up!\n");
     }
         
-    if (wait(&status) != pid)
-        perror("wait error \n");
-    ReportToMaster(status);
+    // if (wait(&status) != pid)
+    //     perror("wait error");
+    // ReportToMaster(status);
 }
 
 
 int main(int argc, const char * argv[]) {
     signal(SIGCHLD, SlaveDyingHandler);
-    Dispatch();
-    BoostContextify("boost\n");
+    // Dispatch();
     // printf("master process pid ==>  %ld\n", (long) getpid());
-    // ForkSlave();
+    TryBlurred();
     return 0;
 }
