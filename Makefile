@@ -1,6 +1,6 @@
 CC = g++
-SRCS = acct.cpp
-OBJS = out/acct.o
+SRCS = sync.cpp
+OBJS = out/aync.o
 
 .PHONY: expe all clean
 
