@@ -10,7 +10,7 @@ $(OBJS): $(SRCS)
 	@$(CC) -c $< -o $@
 
 expe: $(OBJS)
-	@$(CC) $< -o $@
+	@$(CC) $< /usr/local/lib/libboost_regex.a -o $@
 
 clean:
 	@rm out/*.o

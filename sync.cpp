@@ -3,10 +3,27 @@
 #include <stdlib.h>
 #include <sys/sem.h>
 #include <sys/wait.h>
+#include <boost/regex.hpp>
+#include <iostream>
+#include <string>
 
 //still requires global resource
 //only one resource in this case
 volatile static int resource = 0;
+
+extern "C" {
+
+}
+
+void CommunicateViaMQ() {
+	key_t mq_key = IPC_PRIVATE;
+	pid_t pid;
+	int mqid;
+	// char mq_msg_buf[1024];
+	// if ((mqid = msqget(mq_key, IPC_CREAT)) < 0)
+	// 	perror("acquire MQ error");
+	// if (msqctl(mqid, ))
+}
 
 void LockResWithSemaphore() {
     key_t sem_key = IPC_PRIVATE;
@@ -49,7 +66,7 @@ void LockResWithSemaphore() {
     }
 }
 
+
 int main() {
-	printf("start\n");
 	LockResWithSemaphore();
 }
